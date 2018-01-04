@@ -1,0 +1,1 @@
+make clean ; mirage configure -t qubes && make && ../qubes-test-mirage/test-mirage qubes_skeleton.xen mirage-test
