@@ -8,7 +8,7 @@ struct
     ignore @@ Sdl.init_sub_system Sdl.Init.audio ; (* TODO *)
 
     let desired_audio_spec : Sdl.audio_spec =
-      { Sdl.as_freq = 41000 ; (* 41000 Hz, as required by QubesOS *)
+      { Sdl.as_freq = 44100 ; (* 44100 Hz, as required by QubesOS *)
         (* AUDIO_S16LSB: http://wiki.libsdl.org/SDL_AudioFormat
            signed 16-bit samples in little-endian byte order*)
         as_format = Sdl.Audio.s16_lsb ;
@@ -32,9 +32,8 @@ struct
     | Error (`Msg msg) -> failwith ("no audio for you: " ^ msg)
     | Ok (audio_device, audio_spec) ->
       assert (audio_spec.Sdl.as_samples = 4096) ;
-      let rec play_wav = function
-        | [] -> Lwt.return_unit
-        | tl when Sdl.get_queued_audio_size audio_device >= 82000 ->
+      let rec play_wav audio_piece =
+        if Sdl.get_queued_audio_size audio_device >= 82000 then begin
           (* 82000 is the freq (41000) times the sample_size (16bit)
              times the number of channels (2) divided by the time slot
              (0.5 seconds) and the amount of bits per byte (8).
@@ -42,16 +41,17 @@ struct
           *)
           Sdl.pause_audio_device audio_device false ;
           Time.sleep_ns 250_000_000_L >>= fun () ->
-          play_wav tl
-        | hd :: tl ->
+          play_wav audio_piece
+        end else
             Lwt.return_unit >>= fun () -> (* Lwt yield/breakpoint *)
-            begin match Sdl.queue_audio audio_device hd.Cstruct.buffer with
-              | Ok () -> play_wav tl
+            begin match Sdl.queue_audio audio_device
+                          Cstruct.((of_string audio_piece).Cstruct.buffer) with
+              | Ok () -> play_wav audio_piece
               | _ -> failwith "XX"
             end
       in
       let read_chunk name =
-        Sounds.read sounds name 0L 5_000_000_L >|=
+        Sounds.get sounds Mirage_kv.Key.(v name) >|=
         (function | Ok chunk -> chunk
                   | _ -> failwith "ocaml-crunch oops")
       in

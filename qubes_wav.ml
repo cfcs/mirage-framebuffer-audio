@@ -33,17 +33,13 @@ struct
     in
     init () >>= fun pachan ->
     let play_wav wavfile =
-      let rec loop =
-        function
-        | hd::tl ->
-          Pachan.send pachan [hd] >>= fun (`Ok () | `Eof) ->
-          loop tl
-        | [] -> Lwt.return_unit
+      let rec loop foo =
+          Pachan.send pachan [Cstruct.of_string foo] >|= fun _ -> ()
       in
       loop wavfile
     in
     let read_chunk name =
-      Sounds.read sounds name 0L 5_000_000_L >|=
+      Sounds.get sounds Mirage_kv.Key.(v name) >|=
       (function | Ok chunk -> chunk
                 | _ -> failwith "ocaml-crunch oops")
     in

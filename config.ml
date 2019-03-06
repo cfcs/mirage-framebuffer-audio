@@ -47,6 +47,7 @@ let config_sound =
 let main =
   let packages = [
     package "mirage-kv-lwt" ;
+    package "mirage-time-lwt" ;
     package "rresult" ;
   ] in
   foreign
