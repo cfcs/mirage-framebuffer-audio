@@ -20,7 +20,7 @@ depends: [
   "xen-evtchn" {>= "2.0.0" }
   "xen-gnt" { >= "3.0.1" }
   "mirage-xen" { >= "3.0.0" }
-  "lwt" {>= "3.1.0" & <"4.0.0"}
+  "lwt" {>= "4.1.0" & <"4.2.0"}
   "fmt" {>= "0.8.4"}
   "mirage-types-lwt" { >= "3.0.0" }
   "mirage-qubes" { >= "0.5" }
